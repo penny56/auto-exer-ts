@@ -353,7 +353,7 @@ test.describe('No session', () => {
         
         // 在 view your order页面，点击 Place Order
         await page.getByRole('link', {name: 'Place Order'}).click()
-        await page.pause()
+
         // 在 Payment 页面输入支付信息
         await page.locator('[data-qa="name-on-card"]').fill('Matt')
         await page.locator('[data-qa="card-number"]').fill('123456789')
