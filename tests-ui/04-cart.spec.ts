@@ -3,6 +3,10 @@ import fs from 'fs'
 
 test.beforeEach(async ({ page }, testInfo) => {
     console.log('>>> Str to -------> ', testInfo.title)
+
+    await page.goto("https://www.automationexercise.com/products", { waitUntil: "domcontentloaded" })
+    // 至少加载一个商品
+    await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
 });
 
 test.afterEach(async ({ page }, testInfo) => {
@@ -12,13 +16,6 @@ test.afterEach(async ({ page }, testInfo) => {
 test.describe('No session', () => {
 
     test.use({ storageState: undefined })
-
-    test.beforeEach(async ({ page }) => {
-        // inside 'No session'
-        await page.goto("https://www.automationexercise.com/products", { waitUntil: "domcontentloaded" })
-        // 至少加载一个商品
-        await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
-    });
 
     test('4.1 add products in cart', async ({ page }) => {
         /* 1. 向购物车添加多个产品: 第一个商品1个，第二个商品2个 
@@ -401,23 +398,80 @@ test.describe('No session', () => {
         rows = page.locator('#cart_info_table').locator('tr')
         await expect(rows).toHaveCount(3)
     });
-    
+});
+
+test.describe('With session', () => {
+
+    test.use({ storageState: './state.json'})
 
     test('4.6 place order: login before checkout', async ({ page }) => {
-        /* 已有账号 → 登录 → 加入购物车 → 结账 → 付款 → 下单成功 */
+        /* 已有账号 → 登录 → 1. 加入购物车 → 2. 结账 → 3. 付款 → 4. 下单成功 */
+        // 1. 加商品到购物车
+        const wrapper = page.locator('div.product-image-wrapper').first()
+        const addButton = wrapper.locator('a.add-to-cart').first()
+        await expect(addButton).toBeVisible()
+        await addButton.click()
+        await expect(page.getByText('Your product has been added to cart.')).toBeVisible()
+        await page.getByRole('button', {name: 'Continue Shopping'}).click()
 
+        // 2. 结账
+        await page.locator('div.shop-menu').getByText('Cart').click()
+        await expect(page.locator('#cart_info_table')).toBeVisible()        
 
+        // 点击 process to checkout
+        await page.getByText('Proceed To Checkout').click()
+        
+        // 在 view your order页面，点击 Place Order
+        await page.getByRole('link', {name: 'Place Order'}).click()
+
+        // 3. 付款
+        // 在 Payment 页面输入支付信息
+        await page.locator('[data-qa="name-on-card"]').fill('Matt')
+        await page.locator('[data-qa="card-number"]').fill('123456789')
+        await page.locator('[data-qa="cvc"]').fill('12')
+        await page.locator('[data-qa="expiry-month"]').fill('01')
+        await page.locator('[data-qa="expiry-year"]').fill('02')
+
+        await page.locator('#submit').click()
+
+        // 4. 下单成功
+        await expect(page.getByText('Order Placed!')).toBeVisible()
+        await page.getByRole('link', {name: 'Continue'}).click()
     });
 
-
-
     test('4.7 verify address details in checkout page', async ({ page }) => {
-        /* 在注册信息中填写收货／账单地址 → 在 checkout 页面验证地址是否与注册信息一致 → 之后删除账号 */
+        /* 在注册信息中填写收货／账单地址 → 1. 在 checkout 页面验证地址是否与注册信息一致 */
+        // 加商品到购物车
+        const wrapper = page.locator('div.product-image-wrapper').first()
+        const addButton = wrapper.locator('a.add-to-cart').first()
+        await expect(addButton).toBeVisible()
+        await addButton.click()
+        await expect(page.getByText('Your product has been added to cart.')).toBeVisible()
+        await page.getByRole('button', {name: 'Continue Shopping'}).click()
 
+        // 结账
+        await page.locator('div.shop-menu').getByText('Cart').click()
+        await expect(page.locator('#cart_info_table')).toBeVisible()  
+
+        // 点击 process to checkout
+        await page.getByText('Proceed To Checkout').click()
+
+        // 1. 验证信息一致
+        await page.getByText('Your delivery address').waitFor({ state: 'visible' })
+        let address = await page.locator('#address_delivery').locator('li.address_city.address_state_name.address_postcode').textContent() ?? ''
+        address = address.trim().replace(/\s+/g, ' ')
+
+        console.log(address)
+        // 读取登录用户
+        const jsonStr = fs.readFileSync('user-info.json', 'utf8')
+        const data = JSON.parse(jsonStr)
+
+        const addressJson = data.city + ' ' + data.state + ' ' + data.postcode
+        expect(address).toEqual(addressJson)
     });
 
     test('4.8 download invoice after purchase order', async ({ page }) => {
-        /* 下单成功后 → 点击 “Download Invoice” → 验证发票成功下载 + 后续删除账号流程 */
+        /* 下单成功后 → 点击 “Download Invoice” → 验证发票成功下载 */
 
     });
 });

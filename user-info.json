@@ -1,5 +1,8 @@
 {
   "username": "ss",
   "password": "ss",
-  "useremail": "ss@any"
+  "useremail": "ss@any",
+  "city": "ss",
+  "state": "ss",
+  "postcode": "ss"
 }

@@ -3,6 +3,9 @@ import fs from 'fs'
 
 test.beforeEach(async ({ page }, testInfo) => {
     console.log('>>> Str to -------> ', testInfo.title)
+
+    await page.goto("https://www.automationexercise.com/login", { waitUntil: "domcontentloaded" })
+    await page.getByText('Login to your account').waitFor({ state: 'visible' })
 });
 
 test.afterEach(async ({ page }, testInfo) => {
@@ -12,12 +15,6 @@ test.afterEach(async ({ page }, testInfo) => {
 test.describe('No session', () => {
 
     test.use({ storageState: undefined })
-
-    test.beforeEach(async ({ page }) => {
-        // inside 'No session'
-        await page.goto("https://www.automationexercise.com/login", { waitUntil: "domcontentloaded" })
-        await page.getByText('Login to your account').waitFor({ state: 'visible' })
-    });
 
     test('1.1 Register and delete User', async ({ page }) => {
 

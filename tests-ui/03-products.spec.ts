@@ -2,6 +2,10 @@ import {test, expect } from '@playwright/test'
 
 test.beforeEach(async ({ page }, testInfo) => {
     console.log('>>> Str to -------> ', testInfo.title)
+
+    await page.goto("https://www.automationexercise.com/products", { waitUntil: "domcontentloaded" })
+    // 至少加载一个商品
+    await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
 });
 
 test.afterEach(async ({ page }, testInfo) => {
@@ -11,14 +15,6 @@ test.afterEach(async ({ page }, testInfo) => {
 test.describe('No session', () => {
 
     test.use({ storageState: undefined })
-
-    test.beforeEach(async ({ page }) => {
-        // inside 'No session'
-        await page.goto("https://www.automationexercise.com/products", { waitUntil: "domcontentloaded" })
-        // 至少加载一个商品
-        await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
-
-    });
 
     test('3.1 verify all products and product detail page', async ({ page }) => {
         /* 点击 Products → 查看所有产品 → 选择某产品 → 查看产品详情页，并验证名称/分类/价格/库存/品牌/状态等信息 */

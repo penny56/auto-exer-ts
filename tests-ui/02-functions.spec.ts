@@ -2,6 +2,10 @@ import {test, expect } from '@playwright/test'
 
 test.beforeEach(async ({ page }, testInfo) => {
     console.log('>>> Str to -------> ', testInfo.title)
+
+    await page.goto("https://www.automationexercise.com/")
+    // 至少加载一个商品
+    await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
 });
 
 test.afterEach(async ({ page }, testInfo) => {
@@ -11,13 +15,6 @@ test.afterEach(async ({ page }, testInfo) => {
 test.describe('No session', () => {
 
     test.use({ storageState: undefined })
-
-    test.beforeEach(async ({ page }) => {
-        // inside 'No session'
-        await page.goto("https://www.automationexercise.com/")
-        // 至少加载一个商品
-        await page.waitForSelector('.product-image-wrapper', { state: 'visible' })
-    });
 
     test('2.1 contact us form', async ({ page }) => {
 
