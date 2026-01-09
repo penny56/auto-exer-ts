@@ -76,24 +76,33 @@ test.describe('No session', () => {
     test('5.4 Verify Scroll Up using Arrow button and Scroll Down functionality', async ({ page }) => {
         /* 从首页滚动到底部 → 点击页面右下角的“箭头”按钮 → 验证页面滚到顶部 + 顶部内容可见 */
         // 1️. 滚动到底部
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
 
         // 等待页面底部某个元素可见（可选，确保已经到底部）
-        const footer = page.locator('footer'); 
-        await expect(footer).toBeVisible();
+        const footer = page.locator('footer') 
+        await expect(footer).toBeVisible()
 
-        // 2️. 点击右下角的“箭头”按钮
-        const arrowButton = page.locator('css=button.scroll-to-top'); // 替换为真实选择器
-        await arrowButton.click();
+        // 2️. 点击右下角的“到顶箭头”按钮
+        const arrowButton = page.locator('#scrollUp') // 替换为真实选择器
+        await expect(arrowButton).toBeVisible()
+        await arrowButton.click()
 
-        // 3️. 验证页面滚到顶部 + 顶部内容可见
+        // 3️. 等待页面真正滚到顶部 + 顶部内容可见
+
+        /*
+        这里使用： 
+        expect.poll().toBe(0) 是因为：等到某个状态真的发生，常用在：动画、流动、状态渐变、异步刷新。。。
+        
+        不能使用：
+        expect(scrollY).toBe(0) 是因为：这是一次性检查，无法用于上述情况。
+        */
+        await expect.poll(async () => {
+            return await page.evaluate(() => window.scrollY)
+        }).toBe(0)
+        
         // 等待顶部元素可见
-        const topElement = page.locator('header'); // 或者首页最顶部的标识性元素
-        await expect(topElement).toBeVisible();
-
-        // 可进一步验证页面 scrollTop 为 0
-        const scrollTop = await page.evaluate(() => window.scrollY);
-        expect(scrollTop).toBe(0);
+        const topElement = page.locator('header') // 或者首页最顶部的标识性元素
+        await expect(topElement).toBeVisible()
     });
 
     test('5.5 Verify Scroll Up without Arrow button and Scroll Down functionality', async ({ page }) => {
