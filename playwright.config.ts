@@ -1,10 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
-import { fileURLToPath } from 'url'
-import path from 'path'
 
-// 在 ESM mode下重新定义这2个变量
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -18,7 +13,7 @@ const __dirname = path.dirname(__filename)
  */
 export default defineConfig({
   /* Enable global-setup.ts */
-  globalSetup: path.join(__dirname, 'tests-ui/global-setup.ts'),
+  globalSetup: './tests-ui/global-setup.ts',
 
   testDir: './tests-ui',
   /* Run tests in files in parallel */
